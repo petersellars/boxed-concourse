@@ -1,0 +1,3 @@
+# Ignore Keys Generated for use with Docker Compose
+*_key[s]
+*.pub
