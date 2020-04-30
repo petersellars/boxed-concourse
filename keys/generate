@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
 
 set -e -u
+set -o errexit
+set -o pipefail
+set -o nounset
+
+# Get Environment Variables
+read -ra args < <(< ../.env sed -e /^$/d -e /^#/d | xargs)
+export "${args[@]}"
 
 cd "$(dirname "$0")"
 
-docker run --rm -v "$PWD"/web:/keys concourse/concourse \
+docker run --rm -v "$PWD"/web:/keys concourse/concourse:"$CONCOURSE_VERSION" \
   generate-key -t rsa -f /keys/session_signing_key
 
-docker run --rm -v "$PWD"/web:/keys concourse/concourse \
+docker run --rm -v "$PWD"/web:/keys concourse/concourse:"$CONCOURSE_VERSION" \
   generate-key -t ssh -f /keys/tsa_host_key
 
-docker run --rm -v "$PWD"/worker:/keys concourse/concourse \
+docker run --rm -v "$PWD"/worker:/keys concourse/concourse:"$CONCOURSE_VERSION" \
   generate-key -t ssh -f /keys/worker_key
 
-cp ./worker/worker_key.pub ./web/au
+cp ./worker/worker_key.pub ./web/authorized_worker_keys
+cp ./web/tsa_host_key.pub ./worker
