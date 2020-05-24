@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -e -u
+set -o errexit
+set -o pipefail
+set -o nounset
+
+check_component() {
+  if ! [ -x "$(command -v "$1")" ]; then
+    echo "💀   Could not find $1, please install and set path to $1" >&2
+    exit 1
+  fi
+}
+
+echo '🎁   Boxing up Concourse'
+
+echo '👀   Checking prerequisites'
+check_component docker
+check_component docker-compose
+
+echo '💾   Writing Docker Compose file'
+wget -q -N \
+  https://raw.githubusercontent.com/petersellars/concourse/master/.env
+  
+wget -q -N \
+  https://raw.githubusercontent.com/petersellars/concourse/master/docker-compose.yml
+
+mkdir -p keys/web keys/worker
+wget -q -N -O keys/generate \
+  https://raw.githubusercontent.com/petersellars/concourse/master/keys/generate
+chmod +x keys/generate
+pushd keys &> /dev/null
+./generate
+popd &> /dev/null
+
+echo '🚀   Concourse is ready to launch!'
+
+echo '👍   Launch It!'

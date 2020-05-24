@@ -27,11 +27,11 @@ generateKey() {
     generate-key -t "$2" -f /keys/"$1"
 } &> /dev/null
 
-echo '🔐   Generating signing secrets'
+echo '🔐   Generating Concourse keys'
 pushd "$(dirname "$0")" &> /dev/null
 
 generateKeys
 cp ./worker/worker_key.pub ./web/authorized_worker_keys
 cp ./web/tsa_host_key.pub ./worker
 
-echo '🔐   Generated signing secrets'
+echo '🔐   Generated Concourse keys'
