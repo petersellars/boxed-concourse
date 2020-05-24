@@ -9,16 +9,29 @@ set -o nounset
 read -ra args < <(< ../.env sed -e /^$/d -e /^#/d | xargs)
 export "${args[@]}"
 
-cd "$(dirname "$0")"
+generateKeys() {
+  local keys=(
+    'session_signing_key rsa web'
+    'tsa_host_key ssh web'
+    'worker_key ssh worker'
+  )
+  for key in "${keys[@]}"
+  do
+    IFS=' ' read -r -a keyDetails <<< "$key"
+    generateKey "${keyDetails[@]}"
+  done
+}
 
-docker run --rm -v "$PWD"/web:/keys concourse/concourse:"$CONCOURSE_VERSION" \
-  generate-key -t rsa -f /keys/session_signing_key
+generateKey() {
+  docker run --rm -v "$PWD"/"$3":/keys concourse/concourse:"$CONCOURSE_VERSION" \
+    generate-key -t "$2" -f /keys/"$1"
+} &> /dev/null
 
-docker run --rm -v "$PWD"/web:/keys concourse/concourse:"$CONCOURSE_VERSION" \
-  generate-key -t ssh -f /keys/tsa_host_key
+echo '🔐   Generating signing secrets'
+pushd "$(dirname "$0")" &> /dev/null
 
-docker run --rm -v "$PWD"/worker:/keys concourse/concourse:"$CONCOURSE_VERSION" \
-  generate-key -t ssh -f /keys/worker_key
-
+generateKeys
 cp ./worker/worker_key.pub ./web/authorized_worker_keys
 cp ./web/tsa_host_key.pub ./worker
+
+echo '🔐   Generated signing secrets'
