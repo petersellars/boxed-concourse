@@ -1,15 +1,19 @@
-version: '3'
+version: '3.5'
 
 services:
   concourse-db:
+    container_name: concourse-db
     image: postgres:${POSTGRES_CONTAINER_VERSION}
     environment:
       POSTGRES_DB: concourse
       POSTGRES_PASSWORD: concourse_pass
       POSTGRES_USER: concourse_user
       PGDATA: /database
+    networks:
+      - concourse
 
   concourse:
+    container_name: concourse
     image: concourse/concourse:${CONCOURSE_VERSION}
     command: quickstart
     privileged: true
@@ -24,3 +28,9 @@ services:
       CONCOURSE_ADD_LOCAL_USER: test:test
       CONCOURSE_MAIN_TEAM_LOCAL_USER: test
       CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: overlay
+    networks:
+      - concourse
+
+networks:
+  concourse:
+    name: concourse
