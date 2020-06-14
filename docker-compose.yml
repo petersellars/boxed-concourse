@@ -11,6 +11,8 @@ services:
       PGDATA: /database
     networks:
       - concourse
+    volumes:
+      - dbdata:/database
 
   concourse:
     container_name: concourse
@@ -34,3 +36,6 @@ services:
 networks:
   concourse:
     name: concourse
+
+volumes:
+  dbdata:
